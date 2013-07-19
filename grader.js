@@ -103,7 +103,7 @@ if(require.main == module) {
             var checkJson = checkURL(result, program.checks);
             var outJson = JSON.stringify(checkJson, null, 4);
             console.log(outJson);
-        });
+        };
     } else {
       var checkJson = checkHtmlFile(program.file, program.checks);
       var outJson = JSON.stringify(checkJson, null, 4);
@@ -111,3 +111,4 @@ if(require.main == module) {
     }
 } else {
     exports.checkHtmlFile = checkHtmlFile;
+}
