@@ -27,18 +27,20 @@ References:
 
 
 var fs = require('fs');
+var rest = require('restler');
 var program = require('commander');
 var cheerio = require('cheerio');
-var rest = require("restler");
-var HTMLFILE_DEFAULT = "index.html";
-var CHECKSFILE_DEFAULT = "checks.json";
+
+
+var HTMLFILE_DEFAULT = 'index.html';
+var CHECKSFILE_DEFAULT = 'checks.json';
 
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
     if(!fs.existsSync(instr)) {
-        console.log("%s does not exist. Exiting.", instr);
-        process.exit(1); // http://nodejs.org/api/process.html#process_process_exit_code
+        console.log('%s does not exist. Exiting.', insrt);
+        process.exit(1);
     }
     return instr;
 };
@@ -66,35 +68,46 @@ var checkHtmlFile = function(htmlfile, checksfile) {
 };
 
 
+var checkURL = function(url, checksfile) {
+    $ = cheerio.load(url);
+    var checks = loadChecks(checksfile).sort();
+    var out = {};
+    for(var ii in checks) {
+        var present = $(checks[ii]).length > 0;
+        out[checks[ii]] = present;
+    }
+    return out;
+};
+
+
+var clone = function(fn) {
+    // http://stackoverflow.com/a/6772648
+    return fn.bind({});
+};
+
+
 if(require.main == module) {
     program
-        .option('-c, --checks ', 'Path to checks.json', assertFileExists, CHECKSFILE_DEFAULT)
-        .option('-f, --file ', 'Path to index.html', assertFileExists, HTMLFILE_DEFAULT)
-  	.option('-u, --url ', 'Path to index.html', assertFileExists, HTMLFILE_DEFAULT)
+        .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
+        .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
+        .option('-u, --url <url_address>', 'URL to fetch data from')
         .parse(process.argv);
 
 
-	if (program.url) {
-		var getFile; 
-		if (program.url == "index.html") getFile = rest.get(program.args[1]);
-		else getFile = rest.get(program.args[1] + program.args[0]);
-
-
-		getFile.on("complete", function(data) {
-			fs.writeFileSync("outfile_test.html", data);
-
-
-			var checkJson = checkHtmlFile("outfile_test.html", program.checks);
-			var outJson = JSON.stringify(checkJson, null, 4);
-			console.log(outJson);
-		});
-	} else {
-		var checkJson = checkHtmlFile(program.file, program.checks);
-		var outJson = JSON.stringify(checkJson, null, 4);
-		console.log(outJson);
-	}
+    if (program.url !== undefined) {
+        rest.get(program.url).on('complete', function(result) {
+            if (result instanceof Error) {
+                console.log('%s has an error: %s', program.url, result.message);
+                process.exit(1);
+            }
+            var checkJson = checkURL(result, program.checks);
+            var outJson = JSON.stringify(checkJson, null, 4);
+            console.log(outJson);
+        });
+    } else {
+      var checkJson = checkHtmlFile(program.file, program.checks);
+      var outJson = JSON.stringify(checkJson, null, 4);
+      console.log(outJson);
+    }
 } else {
     exports.checkHtmlFile = checkHtmlFile;
-}
-
-
