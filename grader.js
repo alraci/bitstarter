@@ -71,7 +71,7 @@ if(require.main == module) {
   if(program.url){rest.get(program.url).on('complete', callThis); 
 
 }
-}
+
 else {
     exports.checkHtmlFile = checkHtmlFile;
 }
