@@ -61,9 +61,7 @@ if(require.main == module) {
         .option('-f, --file ', 'index.html', clone
 
 (assertFileExists), HTMLFILE_DEFAULT)
-        .option('-u, --url ', 'http://rocky-ridge-
-
-6631.herokuapp.com/')
+        .option('-u, --url ', 'http://rocky-ridge-6631.herokuapp.com/')
         .parse(process.argv);
     var checkJson = checkHtmlFile(program.file, program.checks);
     var outJson = JSON.stringify(checkJson, null, 4);
